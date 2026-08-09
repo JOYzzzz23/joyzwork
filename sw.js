@@ -1,5 +1,5 @@
-// JOYZWORK Service Worker - PWA 离线支持 + Web Push v21
-const CACHE_NAME = 'joyzwork-v21';
+// JOYZWORK Service Worker - PWA 离线支持 + Web Push v22
+const CACHE_NAME = 'joyzwork-v22';
 const ASSETS = [
   './',
   './index.html',
