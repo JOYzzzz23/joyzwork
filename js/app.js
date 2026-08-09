@@ -688,6 +688,20 @@ function renderTasks(container) {
   }
 
   container.appendChild(list);
+
+  // 底部操作按钮
+  const bottomBar = el('div', { style: { display: 'flex', gap: '8px', marginTop: '12px' } });
+  bottomBar.appendChild(el('button', {
+    class: 'btn-submit',
+    style: { flex: '1', padding: '8px', fontSize: '13px' },
+    onclick: () => openQuickAddModal()
+  }, '+ 新建任务'));
+  bottomBar.appendChild(el('button', {
+    class: 'btn-cancel',
+    style: { flex: '1', padding: '8px', fontSize: '13px' },
+    onclick: () => openRecurringTaskModal()
+  }, '🔄 管理周期任务'));
+  container.appendChild(bottomBar);
 }
 
 function taskItem(t) {
@@ -732,6 +746,28 @@ function taskItem(t) {
   meta.appendChild(el('span', { class: `slot-status status-${t.status}`, text: statusMap[t.status] || '未开始' }));
 
   content.appendChild(meta);
+
+  // 编辑/删除按钮
+  const taskActions = el('div', { style: { display: 'flex', gap: '4px', marginLeft: 'auto', flexShrink: '0' } });
+  taskActions.appendChild(el('button', {
+    class: 'btn-icon-sm',
+    title: '编辑',
+    onclick: (e) => { e.stopPropagation(); openEditTaskModal(t.id); }
+  }, svg('<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>', 12)));
+  taskActions.appendChild(el('button', {
+    class: 'btn-icon-sm',
+    title: '删除',
+    style: { color: 'var(--c-danger)' },
+    onclick: (e) => {
+      e.stopPropagation();
+      if (confirm('确定删除"' + t.title + '"吗？')) {
+        Store.deleteTask(t.id);
+        showToast('已删除', 'info');
+      }
+    }
+  }, svg('<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>', 12)));
+  content.appendChild(taskActions);
+
   item.appendChild(content);
 
   return item;
@@ -764,7 +800,7 @@ function recurringTaskListItem(rt, todayStr) {
 
   meta.appendChild(el('span', { class: `slot-status status-${isDone ? 'done' : 'pending'}`, text: isDone ? '今日已完成' : '今日待完成' }));
 
-  // 编辑按钮
+  // 编辑/删除按钮
   const editBtn = el('button', {
     class: 'btn-icon-sm',
     style: { marginLeft: 'auto', opacity: '0.5' },
@@ -772,6 +808,19 @@ function recurringTaskListItem(rt, todayStr) {
     onclick: (e) => { e.stopPropagation(); openEditRecurringModal(rt.id); }
   }, svg('<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>', 12));
   meta.appendChild(editBtn);
+  const delBtn = el('button', {
+    class: 'btn-icon-sm',
+    style: { opacity: '0.5', color: 'var(--c-danger)' },
+    title: '删除周期任务',
+    onclick: (e) => {
+      e.stopPropagation();
+      if (confirm('确定删除周期任务"' + rt.title + '"吗？')) {
+        Store.deleteRecurringTask(rt.id);
+        showToast('周期任务已删除', 'info');
+      }
+    }
+  }, svg('<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>', 12));
+  meta.appendChild(delBtn);
 
   content.appendChild(meta);
   item.appendChild(content);
@@ -841,6 +890,21 @@ function renderStudy(container) {
     header.appendChild(actions);
     card.appendChild(header);
 
+    // 偏好时段
+    const timeRow = el('div', { class: 'study-time-row' });
+    timeRow.appendChild(el('span', { class: 'study-time-label', text: '偏好时段' }));
+    const timeInput = el('input', {
+      type: 'time',
+      class: 'study-time-input',
+      value: item.preferredTime || '12:30',
+    });
+    timeInput.addEventListener('change', () => {
+      Store.updateStudyItem(item.id, { preferredTime: timeInput.value });
+      showToast(item.name + ' 偏好时段已更新为 ' + timeInput.value, 'success');
+    });
+    timeRow.appendChild(timeInput);
+    card.appendChild(timeRow);
+
     // 笔记区
     const note = el('textarea', {
       class: 'study-note',
@@ -867,7 +931,7 @@ function renderStudy(container) {
       const name = nameInput.value.trim();
       if (!name) { showToast('请输入打卡项名称', 'warning'); return; }
       const link = linkInput.value.trim();
-      Store.addStudyItem({ name, icon: name.charAt(0).toUpperCase(), color: '#6366f1', link: link });
+      Store.addStudyItem({ name, icon: name.charAt(0).toUpperCase(), color: '#6366f1', link: link, preferredTime: '12:30' });
       showToast('已添加打卡项' + (link ? '（含跳转链接）' : ''), 'success');
       nameInput.value = '';
       linkInput.value = '';
