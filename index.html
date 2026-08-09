@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#6366f1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="JOYZWORK">
+  <meta name="description" content="全自动个人事务 & 学习督促 & 宣传情报 & AI辅助 一体化专属秘书工作台">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%236366f1'/%3E%3Ctext x='90' y='125' font-size='95' font-weight='800' fill='white' text-anchor='middle' font-family='sans-serif'%3EJ%3C/text%3E%3C/svg%3E">
+  <title>JOYZWORK - 专属秘书工作台</title>
+  <link rel="stylesheet" href="css/style.css?v=21">
+</head>
+<body>
+
+<!-- ============ 安全门 — 登录遮罩 ============ -->
+<div id="authGate" style="position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#1e1b4b 100%);overflow:auto;">
+  <div id="authGateContent" style="text-align:center;color:#fff;padding:20px;"></div>
+</div>
+
+<div id="app">
+
+  <!-- ============ 侧边导航栏 ============ -->
+  <nav class="side-nav" id="sideNav">
+    <div class="side-nav-item active" data-target="schedule" title="智能日程">
+      <span class="nav-icon">📅</span>
+      <span class="nav-label">日程</span>
+    </div>
+    <div class="side-nav-item" data-target="tasks" title="每日任务">
+      <span class="nav-icon">✅</span>
+      <span class="nav-label">任务</span>
+    </div>
+    <div class="side-nav-item" data-target="study" title="学习打卡">
+      <span class="nav-icon">📚</span>
+      <span class="nav-label">打卡</span>
+    </div>
+    <div class="side-nav-divider"></div>
+    <div class="side-nav-item" data-target="intel" title="宣传情报">
+      <span class="nav-icon">📰</span>
+      <span class="nav-label">情报</span>
+    </div>
+    <div class="side-nav-item" data-target="ai" title="AI助手">
+      <span class="nav-icon">🤖</span>
+      <span class="nav-label">AI</span>
+    </div>
+    <div class="side-nav-item" data-target="studyLib" title="学习素材">
+      <span class="nav-icon">📝</span>
+      <span class="nav-label">素材</span>
+    </div>
+    <div class="side-nav-divider"></div>
+    <div class="side-nav-item" data-target="worklib" title="工作素材库">
+      <span class="nav-icon">💼</span>
+      <span class="nav-label">工作</span>
+    </div>
+    <div class="side-nav-item" data-target="review" title="每日复盘">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">复盘</span>
+    </div>
+    <div class="side-nav-item" data-target="notes" title="随手记">
+      <span class="nav-icon">💡</span>
+      <span class="nav-label">随记</span>
+    </div>
+  </nav>
+
+  <!-- ============ 主内容区 ============ -->
+  <div class="app-main">
+
+  <!-- ============ 顶部全局总览栏 ============ -->
+  <header class="top-bar">
+    <div class="brand">
+      <span class="brand-icon">J</span>
+      <span class="brand-text">JOY<span class="brand-accent">Z</span>WORK</span>
+    </div>
+
+    <div class="stats-row" id="statsRow">
+      <!-- JS 动态渲染统计卡片 -->
+    </div>
+
+    <div class="top-actions">
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="globalSearch" placeholder="搜索任务 / 素材 / 文稿..." />
+        <div class="search-results" id="searchResults"></div>
+      </div>
+      <button class="btn-quick-add" id="btnQuickAdd">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        <span class="btn-quick-add-text">快捷录入</span>
+      </button>
+      <button class="btn-cloud-sync" id="btnCloudSync" title="云端数据同步">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/><path d="M12 12v5M9.5 14.5L12 17l2.5-2.5"/></svg>
+        <span class="btn-cloud-sync-text">云同步</span>
+      </button>
+      <button class="btn-security" id="btnSecurity" title="安全设置 / 退出登录" style="background:none;border:none;color:var(--c-text-secondary);cursor:pointer;padding:6px 8px;border-radius:var(--c-radius-sm);display:flex;align-items:center;gap:4px;font-size:12px;transition:all 0.15s;">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span id="securityLabel" style="font-weight:500;">安全</span>
+      </button>
+      <button class="btn-install" id="btnInstall" title="安装到桌面 / 下载APP">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        <span class="btn-install-text">安装</span>
+      </button>
+      <div class="notif-wrap">
+        <button class="btn-notif" id="btnNotif">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-badge" id="notifBadge" style="display:none">0</span>
+        </button>
+        <div class="notif-panel" id="notifPanel"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ 主体区域 ============ -->
+  <main class="main-area">
+
+    <!-- ===== 左侧核心操作区 ===== -->
+    <section class="panel left-panel" id="section-schedule" data-section="schedule">
+      <div class="panel-header">
+        <div class="panel-tabs" data-target="leftContent">
+          <button class="tab active" data-tab="schedule">智能日程</button>
+          <button class="tab" data-tab="tasks">每日任务</button>
+          <button class="tab" data-tab="study">学习打卡</button>
+        </div>
+        <div class="panel-actions">
+          <button class="btn-icon" id="btnAddTask" title="新增事项">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+          <button class="btn-icon" id="btnRecurringTask" title="周期任务管理">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M21 12a9 9 0 1 1-9 9 9.75 9.75 0 0 1 6.74-2.74L21 16"/><path d="M21 21v-5h-5"/></svg>
+          </button>
+          <button class="btn-icon" id="btnWeekView" title="本周总览">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="panel-body" id="leftContent">
+        <!-- JS 动态渲染 -->
+      </div>
+    </section>
+
+    <!-- ===== 右侧情报工具区 ===== -->
+    <section class="panel right-panel" id="section-intel" data-section="intel">
+      <div class="panel-header">
+        <div class="panel-tabs" data-target="rightContent">
+          <button class="tab active" data-tab="intel">宣传情报</button>
+          <button class="tab" data-tab="ai">AI 助手</button>
+          <button class="tab" data-tab="studyLib">学习素材</button>
+        </div>
+        <div class="panel-actions">
+          <button class="btn-icon" id="btnAddIntel" title="录入素材">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="panel-body" id="rightContent">
+        <!-- JS 动态渲染 -->
+      </div>
+    </section>
+
+    <!-- 拖拽分隔条（左右） -->
+    <div class="resize-handle resize-handle-v" id="resizeV"></div>
+
+  </main>
+
+  <!-- 拖拽分隔条（上下） -->
+  <div class="resize-handle resize-handle-h" id="resizeH"></div>
+
+  <!-- ============ 底部沉淀区 ============ -->
+  <section class="panel bottom-panel" id="section-worklib" data-section="review">
+    <div class="panel-header">
+      <div class="panel-tabs" data-target="bottomContent">
+        <button class="tab active" data-tab="worklib">工作素材库</button>
+        <button class="tab" data-tab="review">每日复盘</button>
+        <button class="tab" data-tab="notes">随手记</button>
+      </div>
+      <div class="panel-actions">
+        <button class="btn-icon" id="btnAddMaterial" title="新增素材">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="panel-body bottom-body" id="bottomContent">
+      <!-- JS 动态渲染 -->
+    </div>
+  </section>
+
+  <!-- ============ 每日一句 ============ -->
+  <div class="daily-quote" id="dailyQuote">
+    <span class="quote-icon">❝</span>
+    <span class="quote-text" id="quoteText"></span>
+  </div>
+
+  </div> <!-- /.app-main -->
+
+  <!-- ============ 移动端底部导航栏 ============ -->
+  <nav class="mobile-nav">
+    <button class="mobile-nav-item active" data-section="schedule">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      <span>日程</span>
+    </button>
+    <button class="mobile-nav-item" data-section="tasks">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <span>任务</span>
+    </button>
+    <button class="mobile-nav-item" data-section="study">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      <span>打卡</span>
+    </button>
+    <button class="mobile-nav-item" data-section="intel">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/></svg>
+      <span>情报</span>
+    </button>
+    <button class="mobile-nav-item" data-section="ai">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8V4H8M4 4h16v16H4z"/><path d="M2 14h2M20 14h2M15 13v4M9 13v4"/></svg>
+      <span>AI</span>
+    </button>
+    <button class="mobile-nav-item" data-section="review">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+      <span>复盘</span>
+    </button>
+  </nav>
+
+</div>
+
+<!-- ============ 全局弹窗容器 ============ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalBox">
+    <div class="modal-header">
+      <h3 id="modalTitle">标题</h3>
+      <button class="modal-close" id="modalClose">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- ============ Toast 通知容器 ============ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ============ 周视图弹窗 ============ -->
+<div class="modal-overlay" id="weekOverlay" style="display:none">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3>本周总览</h3>
+      <button class="modal-close" id="weekClose">&times;</button>
+    </div>
+    <div class="modal-body" id="weekBody"></div>
+  </div>
+</div>
+
+<script src="js/store.js?v=21"></script>
+<script src="js/supabase-sync.js?v=21"></script>
+<script src="js/app.js?v=21"></script>
+<script>
+  // PWA Service Worker 注册 + 自动刷新
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').then(reg => {
+        // 新 SW 接管后自动刷新页面，确保加载最新版本
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          window.location.reload();
+        });
+        // 检测到更新提示时也刷新
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
+                window.location.reload();
+              }
+            });
+          }
+        });
+      }).catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
