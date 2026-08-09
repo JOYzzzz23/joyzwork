@@ -374,7 +374,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   border-radius: var(--radius-lg);
   overflow: hidden;
 }
-.left-panel { flex: 1; min-width: 300px; }
+.left-panel { flex: 1; min-width: 300px; overflow: hidden; }
 .right-panel { width: var(--right-w, 420px); flex-shrink: 0; min-width: 280px; max-width: 800px; }
 
 /* ---------- 拖拽分隔条 ---------- */
@@ -466,6 +466,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 .panel-body {
   flex: 1;
   overflow-y: auto;
+  overflow-x: auto;
   padding: 14px;
 }
 
@@ -1615,12 +1616,13 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 /* 月历 */
 .month-calendar {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 1px;
   background: var(--c-border);
   border: 1px solid var(--c-border);
   border-radius: var(--radius-md);
   overflow: hidden;
+  min-width: 0;
 }
 .month-calendar .cal-week-header {
   background: var(--c-surface-hover);
@@ -1633,6 +1635,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 .month-calendar .cal-day {
   background: var(--c-surface);
   min-height: 72px;
+  min-width: 0;
   padding: 4px;
   cursor: pointer;
   transition: background .15s;
@@ -1640,6 +1643,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   display: flex;
   flex-direction: column;
   gap: 2px;
+  overflow: hidden;
 }
 .month-calendar .cal-day:hover { background: var(--c-surface-hover); }
 .month-calendar .cal-day.empty { background: var(--c-surface-hover); cursor: default; }
