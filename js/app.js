@@ -6059,7 +6059,7 @@ function openSecurityModal() {
     style: { padding: '14px', background: 'var(--c-bg-2)', borderRadius: 'var(--c-radius-md)', fontSize: '12px', color: 'var(--c-text-secondary)', lineHeight: '1.6' }
   });
   codeBox.appendChild(el('div', { style: { fontWeight: '700', marginBottom: '6px', color: 'var(--c-text)' }, text: '🔑 访问密码（前端门禁）' }));
-  codeBox.appendChild(el('div', { style: { marginBottom: '4px' }, text: '当前默认密码：joyzwork2026' }));
+  codeBox.appendChild(el('div', { style: { marginBottom: '4px' }, text: '密码已设置为强密码（仅你自己知晓）' }));
   codeBox.appendChild(el('div', { style: { marginBottom: '4px' }, text: '会话有效期：24 小时（期间免重复输入）' }));
   codeBox.appendChild(el('div', { style: { marginTop: '6px', fontSize: '11px' }, text: '修改密码：编辑 app.js 中 ACCESS_CODE_HASH 常量（SHA-256 哈希值）' }));
   body.appendChild(codeBox);
