@@ -29,9 +29,9 @@ function getDefaultData() {
 
     // 固定打卡项
     studyItems: [
-      { id: 'rmrb', name: '人民日报精读', icon: 'R', color: '#dc2626', link: 'http://paper.people.com.cn/' },
-      { id: 'chinadaily', name: 'ChinaDaily 外文阅读', icon: 'C', color: '#2563eb', link: 'https://www.chinadaily.com.cn/' },
-      { id: 'oral', name: '英语口语训练', icon: 'S', color: '#16a34a', link: 'https://www.bbc.co.uk/learningenglish/english/features/english-at-work' },
+      { id: 'rmrb', name: '人民日报精读', icon: 'R', color: '#dc2626', link: 'http://paper.people.com.cn/', preferredTime: '08:30' },
+      { id: 'chinadaily', name: 'ChinaDaily 外文阅读', icon: 'C', color: '#2563eb', link: 'https://www.chinadaily.com.cn/', preferredTime: '12:30' },
+      { id: 'oral', name: '英语口语训练', icon: 'S', color: '#16a34a', link: 'https://www.bbc.co.uk/learningenglish/english/features/english-at-work', preferredTime: '19:00' },
     ],
 
     // 公众号追踪配置
@@ -413,9 +413,19 @@ const Store = {
 
   addStudyItem(item) {
     item.id = uid();
+    if (!item.preferredTime) item.preferredTime = '12:30';
     _data.studyItems.push(item);
     this.save();
     this.emit();
+  },
+
+  updateStudyItem(id, updates) {
+    const item = _data.studyItems.find(i => i.id === id);
+    if (item) {
+      Object.assign(item, updates);
+      this.save();
+      this.emit();
+    }
   },
 
   deleteStudyItem(id) {
@@ -1390,12 +1400,17 @@ const Scheduler = {
       return false;
     });
 
+    // 无截止日期的任务也纳入今日排期（作为低优先级弹性任务）
+    const noDeadlineTasks = Store.data.tasks.filter(t => !t.deadline && t.status !== 'done');
+
     // 分离硬时间任务（会议 + 课程讲次，有固定时间）和弹性任务
-    const hardTasks = dayTasks.filter(t => 
-      ((t.type === 'internal_meeting' || t.type === 'external_meeting') || t.courseId) && 
+    const hardTasks = dayTasks.filter(t =>
+      ((t.type === 'internal_meeting' || t.type === 'external_meeting') || t.courseId) &&
       t.deadline && t.deadline.includes('T')
     );
     const flexTasks = dayTasks.filter(t => !hardTasks.includes(t));
+    // 无截止日期任务追加到弹性任务末尾（最低优先级）
+    flexTasks.push(...noDeadlineTasks);
 
     // 按时间排序硬任务
     hardTasks.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
@@ -1524,16 +1539,16 @@ const Scheduler = {
     // 重新排序（周期任务可能插入到中间位置）
     slots.sort((a, b) => a.startTime - b.startTime);
 
-    // ====== 学习打卡自动填入（最低优先级）======
-    // 工作任务排完后，将学习打卡项自动填入剩余空闲时段
+    // ====== 学习打卡自动填入（按偏好时段排期）======
     const studyItems = Store.data.studyItems;
     const todayCheckin = Store.getTodayCheckins();
     const studySlots = [];
 
-    // 为每个未完成的学习项分配30分钟时段
+    // 为每个未完成的学习项分配30分钟时段，按偏好时间排序
     studyItems.forEach(item => {
       const isDone = todayCheckin.items[item.id]?.status === 'done';
       if (!isDone) {
+        const [sh, sm] = (item.preferredTime || '12:30').split(':').map(Number);
         studySlots.push({
           id: 'study_' + item.id,
           title: item.name + '（每日打卡）',
@@ -1544,39 +1559,55 @@ const Scheduler = {
           slotType: 'study',
           studyItemId: item.id,
           studyLink: item.link || '',
+          preferredMin: sh * 60 + sm,
         });
       }
     });
 
-    // 将学习项填入工作日程之后的空闲时段
-    let studyTime = currentTime;
-    // 如果当前时间已超过工作时间，尝试在午休后填充
-    if (studyTime >= workEnd * 60) {
-      studyTime = 12 * 60 + 30; // 12:30 午休后
-    }
+    // 按偏好时间排序
+    studySlots.sort((a, b) => a.preferredMin - b.preferredMin);
 
+    // 将学习项按偏好时间插入空闲时段
     studySlots.forEach(studySlot => {
-      // 找一个不超过18:00的30分钟空档
-      if (studyTime + 30 <= workEnd * 60) {
-        // 检查是否与已有slot冲突
-        const hasConflict = slots.some(s => 
-          (studyTime >= s.startTime && studyTime < s.endTime) ||
-          (studyTime + 30 > s.startTime && studyTime + 30 <= s.endTime) ||
-          (studyTime <= s.startTime && studyTime + 30 >= s.endTime)
+      const studyEst = 30;
+      let tryTime = studySlot.preferredMin;
+
+      // 尝试在偏好时间附近放置（最多尝试20次，每次偏移15分钟）
+      let placed = false;
+      for (let attempt = 0; attempt < 24; attempt++) {
+        // 确保在工作时间范围内（允许到20:00，因为学习可以下班后）
+        if (tryTime < workStart * 60) tryTime = workStart * 60;
+        if (tryTime + studyEst > 20 * 60) {
+          tryTime = workStart * 60;
+          continue;
+        }
+        // 检查冲突
+        const hasConflict = slots.some(s =>
+          (tryTime >= s.startTime && tryTime < s.endTime) ||
+          (tryTime + studyEst > s.startTime && tryTime < s.endTime)
         );
         if (!hasConflict) {
-          studySlot.startTime = studyTime;
-          studySlot.endTime = studyTime + 30;
+          studySlot.startTime = tryTime;
+          studySlot.endTime = tryTime + studyEst;
           slots.push(studySlot);
-          studyTime += 40; // 30分钟学习 + 10分钟休息
-        } else {
-          // 跳过冲突时段，找下一个空闲
-          studyTime += 40;
-          if (studyTime + 30 <= workEnd * 60) {
-            studySlot.startTime = studyTime;
-            studySlot.endTime = studyTime + 30;
+          placed = true;
+          break;
+        }
+        tryTime += 15;
+      }
+
+      // 如果偏好时间附近都冲突了，找任意空闲时段
+      if (!placed) {
+        for (let t = workStart * 60; t + studyEst <= 20 * 60; t += 15) {
+          const conflict = slots.some(s =>
+            (t >= s.startTime && t < s.endTime) ||
+            (t + studyEst > s.startTime && t < s.endTime)
+          );
+          if (!conflict) {
+            studySlot.startTime = t;
+            studySlot.endTime = t + studyEst;
             slots.push(studySlot);
-            studyTime += 40;
+            break;
           }
         }
       }
@@ -1585,8 +1616,9 @@ const Scheduler = {
     // 按时间排序所有slot
     slots.sort((a, b) => a.startTime - b.startTime);
 
-    // 检查过载（仅工作/会议任务过载才算）
-    const overload = flexTasks.length > 0;
+    // 检查过载（仅有截止日期的弹性任务未排下才算过载）
+    const overload = flexTasks.filter(t => t.deadline).length > 0;
+    const remainingTasks = flexTasks.filter(t => t.deadline);
 
     return { slots, overload, remainingTasks: flexTasks };
   },
