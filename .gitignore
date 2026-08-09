@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# WorkBuddy
+.workbuddy/
+
+# Supabase secrets (keep SQL and Edge Functions, exclude env)
+supabase/.env
+*.env
+
+# Logs
+*.log
+supabase/.temp/
