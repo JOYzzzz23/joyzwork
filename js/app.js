@@ -5791,8 +5791,8 @@ function openInstallGuideModal() {
    安全门 — 访问控制（密码门 + Supabase Auth）
    ============================================================ */
 
-// 访问密码哈希（SHA-256 of 'joyzwork2026'，修改密码请重新计算哈希）
-const ACCESS_CODE_HASH = '0665d7db5729c9899c7582d71064236cab6e641aab1b0734731823470920aa9a';
+// 访问密码哈希（SHA-256，修改密码请重新计算哈希）
+const ACCESS_CODE_HASH = '8bf6637d0ed42fc8550435d1d2f842c89430ab68bbe6262a209e340911b59239';
 const ACCESS_CODE_SESSION_KEY = 'joyzwork_access_session';
 const ACCESS_CODE_SESSION_HOURS = 24;
 
