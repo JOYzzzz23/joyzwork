@@ -13,9 +13,15 @@ desktop.ini
 # WorkBuddy
 .workbuddy/
 
-# Supabase secrets (keep SQL and Edge Functions, exclude env)
-supabase/.env
+# Supabase - 仅本地保留，不上传到公开仓库（含VAPID私钥等敏感信息）
+supabase/
 *.env
+
+# Temp scripts
+delete_*.js
+upload_*.js
+upload_*.sh
+git_api.js
 
 # Logs
 *.log
