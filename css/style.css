@@ -753,6 +753,30 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   font-size: 14px;
 }
 .study-card-actions { display: flex; gap: 6px; }
+.study-time-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  background: var(--c-surface-hover);
+  border-radius: var(--radius-sm);
+}
+.study-time-label {
+  font-size: 11px;
+  color: var(--c-text-secondary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.study-time-input {
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  font-size: 12px;
+  color: var(--c-text);
+  background: var(--c-surface);
+  cursor: pointer;
+}
 .btn-study-link {
   display: flex;
   align-items: center;
